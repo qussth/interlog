@@ -1,4 +1,4 @@
-module interlog
+module github.com/qussth/interlog
 
 go 1.17
 
