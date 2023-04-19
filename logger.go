@@ -10,19 +10,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// logger struct
-type logger struct {
+type Logger struct {
 	zero zerolog.Logger
-}
-
-// Logger ...
-type Logger interface {
-	Debug(message string, values []Value)
-	Info(message string, values []Value)
-	InfoToSentry(message string, values []Value)
-	Warn(message string, values []Value)
-	Error(err error, values []Value)
-	Panic(err error, values []Value)
 }
 
 type Values []Value
@@ -35,8 +24,8 @@ type Value struct {
 var Message = zerolog.MessageFieldName
 
 // New function
-func New() Logger {
-	l := &logger{
+func New() *Logger {
+	l := &Logger{
 		zero: zerolog.New(zerolog.ConsoleWriter{
 			Out: os.Stdout,
 			FormatLevel: func(i interface{}) string {
@@ -65,12 +54,12 @@ func New() Logger {
 	return l
 }
 
-func (l *logger) InitializeSentry(sentryOptions sentry.ClientOptions) error {
+func (l *Logger) InitializeSentry(sentryOptions sentry.ClientOptions) error {
 	return sentry.Init(sentryOptions)
 }
 
 // Debug func
-func (l *logger) Debug(message string, values []Value) {
+func (l *Logger) Debug(message string, values []Value) {
 	event := l.zero.Debug()
 
 	l.appendInterfaces(event, values)
@@ -79,7 +68,7 @@ func (l *logger) Debug(message string, values []Value) {
 }
 
 // Info func
-func (l *logger) Info(message string, values []Value) {
+func (l *Logger) Info(message string, values []Value) {
 	event := l.zero.Info()
 
 	l.appendInterfaces(event, values)
@@ -88,7 +77,7 @@ func (l *logger) Info(message string, values []Value) {
 
 // InfoToSentry func
 // Send info message also in Sentry
-func (l *logger) InfoToSentry(message string, values []Value) {
+func (l *Logger) InfoToSentry(message string, values []Value) {
 	event := l.zero.Info()
 
 	l.appendInterfaces(event, values)
@@ -97,7 +86,7 @@ func (l *logger) InfoToSentry(message string, values []Value) {
 }
 
 // Warn func
-func (l *logger) Warn(message string, values []Value) {
+func (l *Logger) Warn(message string, values []Value) {
 	event := l.zero.Warn()
 
 	l.appendInterfaces(event, values)
@@ -106,7 +95,7 @@ func (l *logger) Warn(message string, values []Value) {
 
 // Error func
 // pass `zerolog.MessageFieldName` field in values to set Msg
-func (l *logger) Error(err error, values []Value) {
+func (l *Logger) Error(err error, values []Value) {
 	event := l.zero.Error().Err(err)
 
 	event.Msg(l.iface(values, event))
@@ -116,14 +105,14 @@ func (l *logger) Error(err error, values []Value) {
 // Panic func
 // will invoke panic with err.Error()
 // pass zerolog.MessageFieldName field in values to set Msg
-func (l *logger) Panic(err error, values []Value) {
+func (l *Logger) Panic(err error, values []Value) {
 	event := l.zero.Panic().Err(err)
 
 	event.Msg(l.iface(values, event))
 	sentry.CaptureException(err)
 }
 
-func (l *logger) iface(values []Value, event *zerolog.Event) string {
+func (l *Logger) iface(values []Value, event *zerolog.Event) string {
 	var msgPassed string
 
 	valIndex := 1
@@ -141,7 +130,7 @@ func (l *logger) iface(values []Value, event *zerolog.Event) string {
 	return msgPassed
 }
 
-func (l *logger) appendInterfaces(event *zerolog.Event, values []Value) *zerolog.Event {
+func (l *Logger) appendInterfaces(event *zerolog.Event, values []Value) *zerolog.Event {
 	for i, value := range values {
 		event = event.Interface(fmt.Sprintf("%d:%s", i+1, value.Key), value.Payload)
 	}
