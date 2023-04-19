@@ -6,8 +6,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/rs/zerolog"
 )
+
+type Reported struct {
+}
 
 // logger struct
 type logger struct {
@@ -34,7 +38,7 @@ type Value struct {
 var Message = zerolog.MessageFieldName
 
 // New function
-func New() Logger {
+func New(sentryOptions *sentry.ClientOptions) (Logger, error) {
 	l := &logger{
 		zero: zerolog.New(zerolog.ConsoleWriter{
 			Out: os.Stdout,
@@ -61,7 +65,13 @@ func New() Logger {
 		l.zero = l.zero.Level(zerolog.InfoLevel)
 	}
 
-	return l
+	if sentryOptions != nil {
+		if err := sentry.Init(*sentryOptions); err != nil {
+			return nil, err
+		}
+	}
+
+	return l, nil
 }
 
 // Debug func
@@ -70,6 +80,7 @@ func (l *logger) Debug(message string, values []Value) {
 
 	l.appendInterfaces(event, values)
 	event.Msg(message)
+
 }
 
 // Info func
@@ -102,8 +113,8 @@ func (l *logger) Warn(message string, values []Value) {
 func (l *logger) Error(err error, values []Value) {
 	event := l.zero.Error().Err(err)
 
-	msgPassed := l.iface(values, event)
-	event.Msg(msgPassed)
+	event.Msg(l.iface(values, event))
+	sentry.CaptureException(err)
 }
 
 // Panic func
@@ -113,6 +124,7 @@ func (l *logger) Panic(err error, values []Value) {
 	event := l.zero.Panic().Err(err)
 
 	event.Msg(l.iface(values, event))
+	sentry.CaptureException(err)
 }
 
 func (l *logger) iface(values []Value, event *zerolog.Event) string {
@@ -129,6 +141,7 @@ func (l *logger) iface(values []Value, event *zerolog.Event) string {
 		event = event.Interface(value.Key, fmt.Sprintf("%d:%v", valIndex, value.Payload))
 		valIndex++
 	}
+
 	return msgPassed
 }
 
