@@ -10,9 +10,6 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type Reported struct {
-}
-
 // logger struct
 type logger struct {
 	zero zerolog.Logger
