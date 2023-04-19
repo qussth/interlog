@@ -38,7 +38,7 @@ type Value struct {
 var Message = zerolog.MessageFieldName
 
 // New function
-func New(sentryOptions *sentry.ClientOptions) (Logger, error) {
+func New() Logger {
 	l := &logger{
 		zero: zerolog.New(zerolog.ConsoleWriter{
 			Out: os.Stdout,
@@ -65,13 +65,11 @@ func New(sentryOptions *sentry.ClientOptions) (Logger, error) {
 		l.zero = l.zero.Level(zerolog.InfoLevel)
 	}
 
-	if sentryOptions != nil {
-		if err := sentry.Init(*sentryOptions); err != nil {
-			return nil, err
-		}
-	}
+	return l
+}
 
-	return l, nil
+func (l *logger) InitializeSentry(sentryOptions sentry.ClientOptions) error {
+	return sentry.Init(sentryOptions)
 }
 
 // Debug func
