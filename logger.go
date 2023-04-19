@@ -93,6 +93,7 @@ func (l *logger) InfoToSentry(message string, values []Value) {
 
 	l.appendInterfaces(event, values)
 	event.Msg(message)
+	sentry.CaptureMessage(message)
 }
 
 // Warn func
