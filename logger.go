@@ -123,7 +123,7 @@ func (l *Logger) iface(values []Value, event *zerolog.Event) string {
 			continue
 		}
 
-		event = event.Interface(value.Key, fmt.Sprintf("%d:%v", valIndex, value.Payload))
+		event = event.Interface(fmt.Sprintf("%d:%v", valIndex, value.Key), value.Payload)
 		valIndex++
 	}
 
