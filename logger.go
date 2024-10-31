@@ -123,7 +123,7 @@ func (l *Logger) iface(values []Value, event *zerolog.Event) string {
 			continue
 		}
 
-		event = event.Interface(fmt.Sprintf("%d:%v", valIndex, value.Key), value.Payload)
+		event = event.Interface(fmt.Sprintf("%3d:%v", valIndex, value.Key), value.Payload)
 		valIndex++
 	}
 
@@ -132,7 +132,7 @@ func (l *Logger) iface(values []Value, event *zerolog.Event) string {
 
 func (l *Logger) appendInterfaces(event *zerolog.Event, values []Value) *zerolog.Event {
 	for i, value := range values {
-		event = event.Interface(fmt.Sprintf("%d:%s", i+1, value.Key), value.Payload)
+		event = event.Interface(fmt.Sprintf("%3d:%s", i+1, value.Key), value.Payload)
 	}
 
 	return event
