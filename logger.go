@@ -10,6 +10,12 @@ import (
 	"github.com/rs/zerolog"
 )
 
+type Context struct {
+	l *Logger
+
+	values []Value
+}
+
 type Logger struct {
 	zero zerolog.Logger
 }
@@ -94,9 +100,12 @@ func (l *Logger) Warn(message string, values []Value) {
 }
 
 // Error func
-// pass `zerolog.MessageFieldName` field in values to set Msg
+// pass `zerolog.MessageFieldName` or `interlog.Message` field in values to set Msg
 func (l *Logger) Error(err error, values []Value) {
 	event := l.zero.Error().Err(err)
+
+	c := l.zero.With()
+	c.Caller()
 
 	event.Msg(l.iface(values, event))
 	sentry.CaptureException(err)
@@ -104,7 +113,7 @@ func (l *Logger) Error(err error, values []Value) {
 
 // Panic func
 // will invoke panic with err.Error()
-// pass zerolog.MessageFieldName field in values to set Msg
+// pass `zerolog.MessageFieldName` or `interlog.Message` field in values to set Msg
 func (l *Logger) Panic(err error, values []Value) {
 	event := l.zero.Panic().Err(err)
 
